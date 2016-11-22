@@ -7,7 +7,7 @@ defmodule ExleveldbTest do
   end
 
   def mock_db(name) do
-    File.rm_rf name
+    File.rm_rf "#{db_dir}/#{name}"
     {:ok, mockDb} = Exleveldb.open("#{db_dir}/#{name}")
     mockDb
   end
@@ -18,10 +18,24 @@ defmodule ExleveldbTest do
       |> String.replace(" ", "-")
 
     on_exit fn ->
-      File.rm_rf test_db_name
+      File.rm_rf "#{db_dir}/#{test_db_name}"
     end
 
     [db: mock_db(test_db_name), test_location: "#{db_dir}/#{test_db_name}"]
+  end
+
+  test "it's possible to open a paxos_comparator new database and put_get values", context do
+    db_path = "#{db_dir}/test_paxosdb"
+    on_exit fn ->
+      File.rm_rf db_path
+    end
+
+    File.rm_rf db_path
+    {:ok, paxos_db} = Exleveldb.open(db_path, [create_if_missing: true, paxos_comparator: true])
+    k = String.duplicate("1", 8)
+    assert Exleveldb.put(paxos_db, k, "test value") == :ok
+    assert Exleveldb.get(paxos_db, k, []) == {:ok, "test value"}
+
   end
 
   test "it's possible to open a new datastore", context do

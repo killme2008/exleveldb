@@ -31,7 +31,7 @@ defmodule Exleveldb.Mixfile do
   # Type `mix help deps` for more examples and options
   defp deps do
     [
-      {:eleveldb, "~> 2.2.19"},
+      {:eleveldb, git: "https://github.com/killme2008/eleveldb", tag: "paxos-2.0.19"},
       {:earmark, "~> 1.0", only: :dev},
       {:ex_doc, "~> 0.12", only: :dev},
       {:dialyxir, "~> 0.3.5", only: :dev}

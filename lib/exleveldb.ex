@@ -5,6 +5,7 @@ defmodule Exleveldb do
   @type db_key         :: Atom | Bitstring
   @type db_acc         :: any
   @type open_options   :: [{:create_if_missing, boolean} |
+                           {:paxos_comparator, boolean} |
                            {:error_if_exists, boolean} |
                            {:write_buffer_size, pos_integer} |
                            {:block_size, pos_integer} |
@@ -44,10 +45,10 @@ defmodule Exleveldb do
   """
 
   @doc """
-  Takes a `name` string and an `opts` list and opens a new datastore in the 
+  Takes a `name` string and an `opts` list and opens a new datastore in the
   directory called `name`. If `name` does not exist already and no `opts` list
   was provided, `opts` will default to `[{:create_if_missing, :true}]`.
-  
+
   Returns `{:ok, ""}` where what appears to be an empty binary is a reference to the opened
   datastore or, on error, `{:error, {:type, 'reason for error'}}`.
   """
@@ -68,7 +69,7 @@ defmodule Exleveldb do
 
   @doc """
   Takes a reference as returned by `open/2`, a key, and an options list and
-  retrieves a value in LevelDB by key. 
+  retrieves a value in LevelDB by key.
 
   Returns `{:ok, value}` when successful or `:not_found` on failed lookup.
   """
@@ -89,7 +90,7 @@ defmodule Exleveldb do
   @doc """
   Takes a reference as returned by `open/2`, a key and an options list and
   deletes the value associated with `key` in the datastore, `db_ref`.
-  
+
   Returns `:ok` when successful or `{:error, reference, {:type, action}}` on error.
   """
   @spec delete(db_reference, db_key, write_options) :: :ok | {:error, any}
@@ -98,7 +99,7 @@ defmodule Exleveldb do
   @doc """
   Takes a reference as returned by `open/2` and checks whether the datastore
   specified by `db_ref` is empty.
-  
+
   Returns `true` if empty and `false` if not.
   """
   @spec is_empty?(db_reference) :: true | false
@@ -181,7 +182,7 @@ defmodule Exleveldb do
   Takes a reference as returned by `open/2`, an anonymous function,
   an accumulator, and an options list and folds over the key-value pairs
   in the datastore specified in `db_ref`.
-  
+
   Returns the result of the last call to the anonymous function used in the fold.
 
   The two arguments passed to the anonymous function, `fun` are a tuple of the
@@ -223,7 +224,7 @@ defmodule Exleveldb do
   end
 
   @doc """
-  Takes a reference to a data store, then creates and returns `{:ok, ""}` where the 
+  Takes a reference to a data store, then creates and returns `{:ok, ""}` where the
   seemingly empty binary is a reference to the iterator. As with `db_ref`, the iterator
   reference is an opaque type and as such appears to be an empty binary because it's
   internal to the eleveldb module.
@@ -251,8 +252,8 @@ defmodule Exleveldb do
   def iterator_close(iter_ref), do: :eleveldb.iterator_close(iter_ref)
 
   @doc """
-  Destroy a database, which implies the deletion of the database folder. Takes a string with the path to the database and a list of options. 
-  Returns `:ok` on success and `{:error, reason}` on error. 
+  Destroy a database, which implies the deletion of the database folder. Takes a string with the path to the database and a list of options.
+  Returns `:ok` on success and `{:error, reason}` on error.
   """
   @spec destroy(db_location, open_options) :: :ok | {:error, any}
   def destroy(path, opts \\ []) do
@@ -266,7 +267,7 @@ defmodule Exleveldb do
   Returns `:ok` on success and `{:error, reason}` on error.
   """
   @spec repair(db_location, open_options) :: :ok | {:error, any}
-  def repair(path,opts \\ []) do 	
+  def repair(path,opts \\ []) do
     path
     |> :binary.bin_to_list
     |> :eleveldb.repair(opts)
