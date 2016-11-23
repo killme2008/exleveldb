@@ -32,10 +32,11 @@ defmodule ExleveldbTest do
 
     File.rm_rf db_path
     {:ok, paxos_db} = Exleveldb.open(db_path, [create_if_missing: true, paxos_comparator: true])
-    k = String.duplicate("1", 8)
-    assert Exleveldb.put(paxos_db, k, "test value") == :ok
-    assert Exleveldb.get(paxos_db, k, []) == {:ok, "test value"}
-
+    1..10
+    |> Enum.each(fn v ->
+        assert Exleveldb.put(paxos_db, v, v) == :ok
+        assert Exleveldb.get(paxos_db, v, []) == {:ok, Integer.to_string(v)}
+    end)
   end
 
   test "it's possible to open a new datastore", context do
