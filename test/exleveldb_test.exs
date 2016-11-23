@@ -39,6 +39,33 @@ defmodule ExleveldbTest do
     end)
   end
 
+  test "it's possibel iterate paxos_comparator db in numeric order.", context do
+    db_path = "#{db_dir}/test_paxosdb"
+    on_exit fn ->
+      File.rm_rf db_path
+    end
+
+    File.rm_rf db_path
+    {:ok, paxos_db} = Exleveldb.open(db_path, [create_if_missing: true, paxos_comparator: true])
+    10..1
+    |> Enum.each(fn v ->
+      assert Exleveldb.put(paxos_db, v, v) == :ok
+    end)
+
+    {:ok, it} = Exleveldb.iterator(paxos_db)
+    assert Exleveldb.iterator_move(it, :last) == {:ok, "10", "10"}
+    assert Exleveldb.iterator_move(it, :first) == {:ok, "1", "1"}
+    Exleveldb.iterator_close(it)
+
+    assert Exleveldb.put(paxos_db, 0, 0)
+    assert Exleveldb.put(paxos_db, 99, 99)
+
+    {:ok, it} = Exleveldb.iterator(paxos_db)
+    assert Exleveldb.iterator_move(it, :last) == {:ok, "99", "99"}
+    assert Exleveldb.iterator_move(it, :first) == {:ok, "0", "0"}
+    Exleveldb.iterator_close(it)
+  end
+
   test "it's possible to open a new datastore", context do
     assert context[:db] == "" # Opaque types suck for writing wrappers.
     assert File.exists? context[:test_location]
